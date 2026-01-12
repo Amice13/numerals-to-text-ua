@@ -1,13 +1,57 @@
 {
-  "name": "text-to-number-ua",
+  "name": "numerals-to-text-ua",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "A lightweight Ukrainian numeral parser that reliably extracts and converts number words from free-form text",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module"
+  "files": [
+    "dist"
+  ],
+  "ts-standard": {
+    "project": "./tsconfig.json",
+    "ignore": [
+      "dist"
+    ]
+  },
+  "scripts": {
+    "build": "tsup",
+    "ts-standard": "ts-standard src",
+    "test": "node tests/index.ts"
+  },
+  "author": {
+    "name": "Kyrylo Zakharov"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Amice13/numerals-to-text-ua"
+  },
+  "bugs": {
+    "url": "https://github.com/Amice13/numerals-to-text-ua/issues"
+  },
+  "readme": "",
+  "readmeFilename": "README.md",
+  "type": "module",
+  "keywords": [
+    "numerals",
+    "string conversion"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.0.6",
+    "eslint": "^9.39.2",
+    "globals": "^17.0.0",
+    "jiti": "^2.6.1",
+    "ts-standard": "^12.0.2",
+    "tsup": "^8.5.1",
+    "typescript-eslint": "^8.51.0"
+  }
 }

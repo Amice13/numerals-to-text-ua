@@ -26,13 +26,11 @@ const secondEndings3 = ['ьома', 'ьох', 'ьом', 'и']
 const secondEndings4 = ['ма', 'ьох', 'ьом', 'и']
 
 const compositeEndings = ['еро', 'ьома', 'ьох', 'ьом', 'ьма']
-const compositeEndings2 = ['ома', 'ох', 'ом']
 
 // 3rd type of conjugation for quantative n numerals
 const thirdEndings1 = ['', 'ьома', 'ьма', 'ьох', 'ьом', 'и', 'ь']
 const thirdEndings2 = ['и']
-const thirdEndings3 = ['ь']
-const thirdEndings4 = ['ома', 'ох', 'ом', 'а']
+const thirdEndings3 = ['ома', 'ох', 'ом', 'а']
 
 // 4th type of conjugation for quantative n numerals
 const fourthEndings = ['а']
@@ -49,6 +47,7 @@ const sixthEndingsM = ['ами', 'ом', 'ах', 'ам', 'ів', 'и', 'а', 'у
 
 const ordinalEndings = ['ого', 'ому', 'ими', 'ий', 'ої', 'ій', 'их', 'им', 'ім', 'і', 'у', 'а', 'е']
 const ordinalEndingsSoft = ['ього', 'ьому', 'ьїми', 'іми', 'ьої', 'ій', 'іх', 'ім', 'і', 'ю', 'я', 'є']
+const ordinalEndings100 = ['ями', 'ях', 'ею', 'і', 'я']
 
 // Additional numbers
 const bigNumbers = [
@@ -94,7 +93,7 @@ const base = [
     value: 2,
     options: [
       ...secondEndings2.map(ending => `дв${ending}`),
-      ...ordinalEndings.map(ending => `друг${ending}`),
+      ...ordinalEndings.map(ending => `друг${ending}`)
     ]
   },
   {
@@ -127,14 +126,14 @@ const base = [
       'шестеро',
       ...compositeEndings.map(ending => `шіст${ending}`),
       ...thirdEndings2.map(ending => `шест${ending}`),
-      ...ordinalEndings.map(ending => `шост${ending}`),
+      ...ordinalEndings.map(ending => `шост${ending}`)
     ]
   },
   {
     value: 7,
     options: [
       'семеро',
-      ...thirdEndings4.map(ending => `сім${ending}`),
+      ...thirdEndings3.map(ending => `сім${ending}`),
       ...thirdEndings2.map(ending => `сем${ending}`),
       ...ordinalEndings.map(ending => `сьом${ending}`),
       'сім'
@@ -144,7 +143,7 @@ const base = [
     value: 8,
     options: [
       'восьмеро',
-      ...thirdEndings4.map(ending => `вісьм${ending}`),
+      ...thirdEndings3.map(ending => `вісьм${ending}`),
       ...thirdEndings2.map(ending => `восьм${ending}`),
       ...ordinalEndings.map(ending => `восьм${ending}`),
       'вісім'
@@ -307,6 +306,7 @@ const base = [
     options: [
       ...fourthEndings.map(ending => `ст${ending}`),
       ...ordinalEndings.map(ending => `сот${ending}`),
+      ...ordinalEndings100.map(ending => `сотн${ending}`),
       'сто'
     ]
   },
@@ -404,12 +404,12 @@ const base = [
   },
   ...bigNumbers.map((number, i) => {
     return {
-      value: 10**(6 + i * 3),
+      value: 10 ** (6 + i * 3),
       options: [
         ...sixthEndingsM.map(ending => `${number}${ending}`),
         ...ordinalEndings.map(ending => `${number}н${ending}`),
         number
-      ]      
+      ]
     }
   })
 ]
@@ -421,25 +421,23 @@ for (const { value, options } of base) {
   }
 }
 
-type Match = {
+interface Match {
   start: number
   end: number
-  text: string
+  word: string
 }
 
 const wordRegex = /[а-яєіїґ']+/gi
 
-const tokenize = (text: string) =>
+const tokenize = (text: string): Match[] =>
   [...unifyApostrophes(text).toLowerCase().matchAll(wordRegex)].map(m => {
     const word = m[0]
-    const index = m.index!
     return {
       word,
-      start: index,
-      end: index + word.length
+      start: m.index,
+      end: m.index + word.length
     }
   })
-
 
 export const extractNumbers = (text: string): Match[] => {
   const tokens = tokenize(text)
@@ -451,24 +449,22 @@ export const extractNumbers = (text: string): Match[] => {
     let acc = ''
 
     while (j < tokens.length && numeralsMap.has(tokens[j].word)) {
-      acc += (acc ? ' ' : '') + tokens[j].word
-      j++   // ← move forward immediately
+      acc += (acc !== '' ? ' ' : '') + tokens[j].word
+      j++
 
       const next = tokens[j]
-      if (!next) break
+      if (next === undefined) break
 
       if (tokens[j - 1].end !== tokens[j].start &&
           text.slice(tokens[j - 1].end, tokens[j].start).trim() !== '') {
         break
       }
-
     }
 
     if (j > i) {
       const start = tokens[i].start
       const end = tokens[j - 1].end
-      // const end = tokens[j - 1].index + tokens[j - 1].word.length
-      result.push({ start, end, text: acc })
+      result.push({ start, end, word: acc })
       i = j
     } else {
       i++
@@ -478,12 +474,16 @@ export const extractNumbers = (text: string): Match[] => {
   return result
 }
 
-export const parseNumber = (string: string) => {
-  const textNumbers = string.toLowerCase().split(' ')
-  const numbers = textNumbers.map(number => numeralsMap.get(number))
-  return numbers.reduce((number, n, i) => {
-    if (i === 0) return n
-    if (numbers[i - 1] < n) return number * n
-    return number + n
-  }, 1)
+export const parseNumber = (input: string): number => {
+  let current = 0
+  for (const word of input.toLowerCase().split(' ')) {
+    const n = numeralsMap.get(word)
+    if (n === undefined) continue
+    if (n > current) {
+      current = current > 0 ? current * n : n
+    } else {
+      current += n
+    }
+  }
+  return 0 + current
 }
