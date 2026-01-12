@@ -29,11 +29,17 @@ describe('parseNumber()', () => {
     assert.equal(parseNumber('дві тисячі'), 2000)
     assert.equal(parseNumber('три тисячі п\'ятсот'), 3500)
     assert.equal(parseNumber('мільйон'), 1_000_000)
+    assert.equal(parseNumber('один мільйон двісті тисяч'), 1200000)
+    assert.equal(parseNumber('один мільйон двісті тисяч триста двадцять п\'ять'), 1200325)
   })
 
-  it('ignores unknown words', () => {
-    assert.equal(parseNumber('бла бла п\'ять бла'), 5)
-    assert.equal(parseNumber('сто щось двадцять'), 120)
+  it('throws on garbage tokens inside a number phrase', () => {
+    assert.throws(
+      () => parseNumber('сто щось двадцять'),
+      {
+        name: 'Error'
+      }
+    )
   })
 })
 

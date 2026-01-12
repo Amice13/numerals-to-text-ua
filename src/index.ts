@@ -8,7 +8,7 @@ const apostrophes = [
   '´'
 ]
 
-const apostrophesPattern = new RegExp(`(?<apostroph>[${apostrophes.join('')}])`, 'g')
+const apostrophesPattern = new RegExp(`(?:[${apostrophes.join('')}])`, 'g')
 
 const unifyApostrophes = (s: string, replacement = '\''): string => {
   return s.replace(apostrophesPattern, replacement)
@@ -475,15 +475,20 @@ export const extractNumbers = (text: string): Match[] => {
 }
 
 export const parseNumber = (input: string): number => {
+  let result = 0
   let current = 0
   for (const word of input.toLowerCase().split(' ')) {
-    const n = numeralsMap.get(word)
-    if (n === undefined) continue
-    if (n > current) {
-      current = current > 0 ? current * n : n
+    const n = numeralsMap.get(unifyApostrophes(word))
+    if (n === undefined) throw Error('Not a number')
+    if (n >= 1000) {
+      current = (current || 1) * n
+      result += current
+      current = 0
+    } else if (n >= 100) {
+      current = (current || 1) * n      
     } else {
       current += n
     }
   }
-  return 0 + current
+  return result + current
 }
