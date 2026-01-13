@@ -42,6 +42,7 @@ Returns:
 Example:
 
 ```
+import { extractNumbers, parseNumber } from 'numerals-to-text-ua' 
 const text = 'У мене є двадцять три яблука і чотириста груш.'
 extractNumbers(text)
 
